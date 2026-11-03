@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en" data-theme="light" data-nav="dock" data-dock="top">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		<meta name="text-scale" content="scale" />
+		<meta name="color-scheme" content="light dark" />
+		<link rel="icon" href="%sveltekit.assets%/favicon.svg" type="image/svg+xml" />
+		<script>
+			// Apply saved preferences before first paint so there is no theme/nav flash.
+			// "auto" dock resolves to top (≥1280px), left (≥600px) or bottom (phones).
+			(function () {
+				try {
+					var d = document.documentElement;
+					var t = localStorage.getItem('pf-theme') || 'system';
+					if (t === 'system') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+					d.dataset.theme = t === 'dark' ? 'dark' : 'light';
+					d.dataset.nav = localStorage.getItem('pf-nav') === 'rail' ? 'rail' : 'dock';
+					var p = localStorage.getItem('pf-dock');
+					if (['top', 'bottom', 'left', 'right'].indexOf(p) < 0) {
+						var w = window.innerWidth;
+						p = w >= 1280 ? 'top' : w >= 600 ? 'left' : 'bottom';
+					}
+					d.dataset.dock = p;
+				} catch (e) {}
+			})();
+		</script>
+		%sveltekit.head%
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>

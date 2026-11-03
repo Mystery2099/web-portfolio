@@ -1,0 +1,55 @@
+{
+	"name": "dev-portfolio",
+	"private": true,
+	"version": "0.1.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"prepare": "svelte-kit sync || echo ''",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+	},
+	"imports": {
+		"#lib/*": "./src/lib/*",
+		"#content/*": "./content/*"
+	},
+	"devDependencies": {
+		"@sveltejs/adapter-static": "^4.0.0",
+		"@sveltejs/kit": "^3.1.0",
+		"@sveltejs/vite-plugin-svelte": "^7.3.1",
+		"@tailwindcss/vite": "^4.3.3",
+		"@tanstack/devtools-vite": "^0.8.5",
+		"@tanstack/svelte-devtools": "^0.1.7",
+		"svelte": "^5.57.3",
+		"svelte-check": "^4.7.7",
+		"tailwindcss": "^4.3.3",
+		"typescript": "^6.0.3",
+		"vite": "^8.3.5"
+	},
+	"dependencies": {
+		"@fontsource-variable/roboto-flex": "^5.3.0",
+		"@fontsource/roboto-mono": "^5.3.0",
+		"@lucide/svelte": "^1.61.0",
+		"@tanstack/markdown": "^1.0.0",
+		"@tanstack/query-sync-storage-persister": "^5.104.5",
+		"@tanstack/svelte-hotkeys": "^0.17.0",
+		"@tanstack/svelte-query": "^6.3.6",
+		"@tanstack/svelte-query-persist-client": "^6.3.5",
+		"@tanstack/svelte-table": "^9.3.1",
+		"bits-ui": "^2.20.2",
+		"runed": "^0.38.0",
+		"yaml": "^2.9.1",
+		"zod": "^4.6.7"
+	},
+	"intent": {
+		"skills": [
+			"*"
+		]
+	},
+	"packageManager": "pnpm@12.8.1",
+	"engines": {
+		"node": ">=22"
+	}
+}
