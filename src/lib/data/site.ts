@@ -6,7 +6,7 @@ export const site = {
 	location: 'Dundee, NY',
 	school: 'Alfred State College',
 	/** Live address, no trailing slash. Used for link previews, the sitemap and robots.txt. */
-	url: 'https://happy-wave-00fed8810.2.azurestaticapps.net',
+	url: 'https://portfolio.mathewtech.us',
 	email: 'mathewkennedy.dev@proton.me',
 	github: {
 		user: 'Mystery2099',

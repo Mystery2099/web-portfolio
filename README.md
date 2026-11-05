@@ -72,4 +72,16 @@ The downloadable résumé is `static/Mathew_Kennedy-Brewer_Resume.pdf` (`site.re
 
 ## Deploying
 
-`.github/workflows/deploy.yml` type-checks, builds and deploys `build/` to Azure Static Web Apps. Add the `AZURE_STATIC_WEB_APPS_API_TOKEN` repository secret first. `site.url` in `src/lib/data/site.ts` is the live address; link previews, canonical links, `/sitemap.xml` and `/robots.txt` are built from it. `static/staticwebapp.config.json` handles clean URLs, the 404 page and caching. The output is plain static files, so to move hosts you only need to replace the deploy job.
+The production site is https://portfolio.mathewtech.us. Cloudflare Pages connects to `Mystery2099/web-portfolio` through the Cloudflare GitHub app. Pushes to `main` deploy production; other branches and pull requests get preview deployments.
+
+Configure the Pages project with:
+
+- Production branch: `main`
+- Framework preset: None, since the app already produces static files
+- Build command: `npx corepack enable && pnpm install --frozen-lockfile && pnpm check && pnpm build`
+- Build output directory: `build`
+- Build environment: `NODE_VERSION=24`, `SKIP_DEPENDENCY_INSTALL=true`
+
+The build enables Corepack so Pages uses the pnpm version pinned in `package.json`. Dependency installation is explicit so the lockfile stays frozen. Pages runs the checks before publishing, and `.github/workflows/deploy.yml` also checks PRs and pushes and saves the static build as an artifact. No deployment API token is needed in GitHub.
+
+Add `portfolio.mathewtech.us` under the Pages project's Custom domains tab. Cloudflare manages its DNS record and TLS certificate. `site.url` in `src/lib/data/site.ts` controls canonical links, link previews, `/sitemap.xml` and `/robots.txt`. `static/_headers` configures security headers and immutable asset caching. Pages serves clean URLs and uses the generated `404.html` for missing pages.
