@@ -1,29 +1,45 @@
-// Build-time only: lets the site `import` Markdown files under `content/`.
-// Each file becomes a module of plain JSON exports (see collections.ts), so the
-// Markdown parser and validators never reach the browser.
+/**
+ * Build-time Vite plugin that lets the site `import` Markdown files under
+ * `content/`. Each file becomes a module of plain JSON exports (see
+ * `collections.ts`), so the Markdown parser and validators never reach the browser.
+ */
 import { z } from 'zod';
 import type { Plugin } from 'vite';
 import { loadContent } from './collections.ts';
 
+const CONTENT_DIRECTORY = '/content/';
+
+/** Formats a loader failure as a readable build error. */
+function describeError(error: unknown): string {
+	if (error instanceof z.ZodError) return z.prettifyError(error);
+	if (error instanceof Error) return error.message;
+	return String(error);
+}
+
+/**
+ * Creates the content plugin.
+ *
+ * Importing with `?only=<name>` keeps a single export, so project lists can
+ * import card data without pulling every page's body into the shared bundle.
+ */
 export function content(): Plugin {
 	return {
 		name: 'portfolio-content',
 		enforce: 'pre',
-		transform(source, id) {
-			const [path, query = ''] = id.split('?');
-			if (!path.endsWith('.md') || !path.includes('/content/')) return;
-			// `?only=meta` keeps a single export, so lists can import card data
-			// without pulling every page's body into the shared bundle.
-			const only = new URLSearchParams(query).get('only');
-			let exports: Record<string, unknown>;
+		transform(source, moduleId) {
+			const [filePath, query = ''] = moduleId.split('?');
+			if (!filePath.endsWith('.md') || !filePath.includes(CONTENT_DIRECTORY)) return;
+
+			const onlyExport = new URLSearchParams(query).get('only');
+			let moduleExports: Record<string, unknown>;
 			try {
-				exports = loadContent(path, source);
-			} catch (e) {
-				const why = e instanceof z.ZodError ? z.prettifyError(e) : e instanceof Error ? e.message : String(e);
-				this.error(`${path.slice(path.indexOf('/content/') + 1)}: ${why}`);
+				moduleExports = loadContent(filePath, source);
+			} catch (error) {
+				const relativePath = filePath.slice(filePath.indexOf(CONTENT_DIRECTORY) + 1);
+				this.error(`${relativePath}: ${describeError(error)}`);
 			}
-			const code = Object.entries(exports)
-				.filter(([name]) => !only || name === only)
+			const code = Object.entries(moduleExports)
+				.filter(([name]) => !onlyExport || name === onlyExport)
 				.map(([name, value]) => `export const ${name} = ${JSON.stringify(value)};`)
 				.join('\n');
 			return { code, map: null };

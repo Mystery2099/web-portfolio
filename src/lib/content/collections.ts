@@ -1,19 +1,30 @@
-// Build-time only: what each kind of Markdown file may contain, and what it
-// turns into. Mistakes in a file (a typo'd field, an unknown section) fail the
-// build with the file name and the problem.
+/**
+ * Build-time content schemas: what each kind of Markdown file under `content/`
+ * may contain, and the data it turns into. A mistake in a file, such as a
+ * misspelled field or an unknown section, fails the build with the file name
+ * and the problem.
+ */
 import { z } from 'zod';
 import { categoryIds, glyphs, techFilters, tileShapes, toneNames } from '../data/taxonomy.ts';
 import { inlineMarkdown, loadMarkdown } from './markdown.ts';
 import { hasContent, type Section } from './types.ts';
 
-const nameNote = z.strictObject({ name: z.string(), note: z.string() });
-const image = z.strictObject({ src: z.string(), alt: z.string() });
+/** Icons available for skill groups on the About page. */
+export const skillIcons = ['code', 'globe', 'database', 'wrench', 'shield', 'terminal', 'server', 'cpu'] as const;
 
-const projectFrontmatter = z.strictObject({
+const PROJECT_SECTION_KEYS = ['intro', 'features', 'architecture', 'challenges', 'status'] as const;
+
+const nameWithNoteSchema = z.strictObject({ name: z.string(), note: z.string() });
+const imageSchema = z.strictObject({ src: z.string(), alt: z.string() });
+
+/** A string of inline Markdown (`*em*`, `**strong**`, links), converted to HTML. */
+const inlineMarkdownSchema = z.string().transform(inlineMarkdown);
+
+const projectFrontmatterSchema = z.strictObject({
 	title: z.string(),
 	/** Position in project lists; lower comes first. */
 	order: z.number(),
-	/** Two/three-letter monogram for the project tile. */
+	/** Two- or three-letter monogram for the project tile. */
 	ini: z.string().max(3),
 	shape: z.enum(tileShapes),
 	tone: z.enum(toneNames),
@@ -38,140 +49,173 @@ const projectFrontmatter = z.strictObject({
 	status: z.string().optional(),
 	facts: z.record(z.string(), z.string()).default({}),
 	stackGroups: z.record(z.string(), z.array(z.string())).default({}),
-	screenshots: z.array(image).default([]),
+	screenshots: z.array(imageSchema).default([]),
 	screenshotHints: z.tuple([z.string(), z.string(), z.string()]).optional(),
 	diagram: z
-		.strictObject({ label: z.string(), top: nameNote, middle: z.array(nameNote).min(1), bottom: nameNote })
+		.strictObject({
+			label: z.string(),
+			top: nameWithNoteSchema,
+			middle: z.array(nameWithNoteSchema).min(1),
+			bottom: nameWithNoteSchema
+		})
 		.optional(),
 	links: z
 		.array(z.strictObject({ label: z.string(), href: z.url(), caption: z.string().optional() }))
 		.default([])
 });
 
-const projectSections = ['intro', 'features', 'architecture', 'challenges', 'status'] as const;
-type ProjectSectionKey = (typeof projectSections)[number];
-
-const emptySection = (): Section => ({ title: '', blocks: [], parts: [] });
-
-function checkSections<K extends string>(sections: Record<string, Section>, allowed: readonly K[]) {
-	const unknown = Object.entries(sections).filter(([k]) => !allowed.includes(k as K));
-	if (unknown.length) {
-		const names = allowed.filter((k) => k !== 'intro').map((k) => `"## ${k[0].toUpperCase()}${k.slice(1)}"`);
-		throw new Error(
-			`Unknown section ${unknown.map(([, s]) => `"## ${s.title}"`).join(', ')}. ` +
-				(names.length ? `Allowed: ${names.join(', ')}.` : 'This file has no sections.')
-		);
-	}
-	return Object.fromEntries(allowed.map((k) => [k, sections[k] ?? emptySection()])) as Record<K, Section>;
-}
-
-function loadProject(source: string, file: string) {
-	const { frontmatter, sections } = loadMarkdown(source);
-	const f = projectFrontmatter.parse(frontmatter);
-	const s = checkSections(sections, projectSections);
-	const slug = file.slice(file.lastIndexOf('/') + 1, -'.md'.length);
-	const githubRepo = new URL(f.repo).pathname.slice(1).replace(/\/$/, '');
-	const host = (href: string) => {
-		const u = new URL(href);
-		return u.host === 'github.com' ? `github.com/${u.pathname.split('/')[1]}` : u.host;
-	};
-	// A project gets its own page once its overview (text before the first `##`) is written.
-	const hasPage = hasContent({ blocks: s.intro.blocks });
-
-	const meta = {
-		slug,
-		order: f.order,
-		title: f.title,
-		ini: f.ini,
-		shape: f.shape,
-		tone: f.tone,
-		glyph: f.glyph,
-		cat: f.category,
-		catLabel: f.categoryLabel,
-		kind: f.kind,
-		tagline: f.tagline,
-		primary: f.primary,
-		featured: f.featured,
-		blurb: f.blurb,
-		shortBlurb: f.shortBlurb,
-		stack: f.stack,
-		featuredStack: f.featuredStack,
-		techs: f.techs,
-		repo: f.repo,
-		githubRepo,
-		download: f.download,
-		note: f.note,
-		hasPage
-	};
-	const page = {
-		status: f.status,
-		facts: Object.entries(f.facts).map(([label, value]) => ({ label, value })),
-		stack: Object.entries(f.stackGroups).map(([label, items]) => ({ label, items })),
-		screenshots: f.screenshots,
-		screenshotHints: f.screenshotHints,
-		diagram: f.diagram,
-		links: [
-			{ label: 'Repository', href: f.repo, caption: host(f.repo) },
-			...f.links.map((l) => ({ ...l, caption: l.caption ?? host(l.href) }))
-		],
-		sections: s as Record<ProjectSectionKey, Section>
-	};
-	return { meta, page };
-}
-
-/** Icons available for skill groups on the About page. */
-export const skillIcons = ['code', 'globe', 'database', 'wrench', 'shield', 'terminal', 'server', 'cpu'] as const;
-
-const aboutFrontmatter = z.strictObject({
-	portrait: image.optional(),
+const aboutFrontmatterSchema = z.strictObject({
+	portrait: imageSchema.optional(),
 	skills: z.array(
 		z.strictObject({ title: z.string(), icon: z.enum(skillIcons), items: z.array(z.string()).min(1) })
 	),
 	interests: z.array(z.string())
 });
 
-function loadAbout(source: string) {
-	const { frontmatter, sections } = loadMarkdown(source);
-	const { portrait, skills, interests } = aboutFrontmatter.parse(frontmatter);
-	const s = checkSections(sections, ['intro', 'philosophy']);
-	const [statement, ...extra] = s.philosophy.parts;
-	if (!statement || extra.length) {
-		throw new Error('"## Philosophy" needs exactly one "### " line: the big statement, with the paragraph under it.');
-	}
-	return { portrait, skills, interests, intro: s.intro, philosophy: statement };
-}
-
-// Strings in experience.md may use inline Markdown (*em*, **strong**, [links](…)).
-const md = z.string().transform(inlineMarkdown);
-
-const experienceFrontmatter = z.strictObject({
-	work: z.array(z.strictObject({ title: z.string(), org: z.string(), when: z.string(), points: z.array(md) })),
-	education: z.array(
-		z.strictObject({ title: z.string(), org: z.string(), when: z.string(), note: md.optional() })
+const experienceFrontmatterSchema = z.strictObject({
+	work: z.array(
+		z.strictObject({ title: z.string(), org: z.string(), when: z.string(), points: z.array(inlineMarkdownSchema) })
 	),
-	competitions: z.array(z.strictObject({ title: z.string(), body: md, when: z.string() })),
+	education: z.array(
+		z.strictObject({ title: z.string(), org: z.string(), when: z.string(), note: inlineMarkdownSchema.optional() })
+	),
+	competitions: z.array(z.strictObject({ title: z.string(), body: inlineMarkdownSchema, when: z.string() })),
 	certifications: z.array(z.string()),
 	academic: z.array(
 		z.strictObject({
 			title: z.string(),
 			course: z.string(),
-			body: md,
-			/** Links the card to /projects/<project>. */
+			body: inlineMarkdownSchema,
+			/** Slug of a project; links the card to `/projects/<project>`. */
 			project: z.string().optional()
 		})
 	)
 });
 
-function loadExperience(source: string) {
-	const { frontmatter, sections } = loadMarkdown(source);
-	const f = experienceFrontmatter.parse(frontmatter);
-	return { ...f, intro: checkSections(sections, ['intro']).intro };
+function createEmptySection(): Section {
+	return { title: '', blocks: [], parts: [] };
 }
 
+/**
+ * Checks that a document only uses the allowed `##` sections and fills in
+ * any that are missing with empty ones.
+ *
+ * @param sections Sections parsed from the document, keyed by heading slug.
+ * @param allowedKeys Section keys this kind of file may contain.
+ * @throws Error naming the unknown sections and listing the allowed ones.
+ */
+function requireKnownSections<K extends string>(
+	sections: Record<string, Section>,
+	allowedKeys: readonly K[]
+): Record<K, Section> {
+	const unknownSections = Object.entries(sections).filter(([key]) => !allowedKeys.includes(key as K));
+	if (unknownSections.length > 0) {
+		const unknownHeadings = unknownSections.map(([, section]) => `"## ${section.title}"`).join(', ');
+		const allowedHeadings = allowedKeys
+			.filter((key) => key !== 'intro')
+			.map((key) => `"## ${key[0].toUpperCase()}${key.slice(1)}"`);
+		const hint = allowedHeadings.length ? `Allowed: ${allowedHeadings.join(', ')}.` : 'This file has no sections.';
+		throw new Error(`Unknown section ${unknownHeadings}. ${hint}`);
+	}
+	return Object.fromEntries(allowedKeys.map((key) => [key, sections[key] ?? createEmptySection()])) as Record<
+		K,
+		Section
+	>;
+}
+
+/** Returns the file name without its directory or `.md` extension. */
+function getSlugFromPath(filePath: string): string {
+	return filePath.slice(filePath.lastIndexOf('/') + 1, -'.md'.length);
+}
+
+/** Returns `owner/name` for a GitHub repository URL. */
+function getGitHubFullName(repositoryUrl: string): string {
+	return new URL(repositoryUrl).pathname.slice(1).replace(/\/$/, '');
+}
+
+/** Returns a short caption for a link: `github.com/<owner>` for GitHub, otherwise the host. */
+function getLinkCaption(href: string): string {
+	const url = new URL(href);
+	return url.host === 'github.com' ? `github.com/${url.pathname.split('/')[1]}` : url.host;
+}
+
+/**
+ * Loads a project file.
+ *
+ * @returns `meta`, the card data every project list needs, and `page`, the
+ *     case-study content that only the project's own page loads.
+ */
+function loadProject(source: string, filePath: string) {
+	const { frontmatter, sections } = loadMarkdown(source);
+	const project = projectFrontmatterSchema.parse(frontmatter);
+	const projectSections = requireKnownSections(sections, PROJECT_SECTION_KEYS);
+
+	const meta = {
+		slug: getSlugFromPath(filePath),
+		order: project.order,
+		title: project.title,
+		initials: project.ini,
+		shape: project.shape,
+		tone: project.tone,
+		glyph: project.glyph,
+		category: project.category,
+		categoryLabel: project.categoryLabel,
+		kind: project.kind,
+		tagline: project.tagline,
+		isPrimary: project.primary,
+		isFeatured: project.featured,
+		blurb: project.blurb,
+		shortBlurb: project.shortBlurb,
+		stack: project.stack,
+		featuredStack: project.featuredStack,
+		techs: project.techs,
+		repo: project.repo,
+		githubFullName: getGitHubFullName(project.repo),
+		download: project.download,
+		note: project.note,
+		/** A project gets its own page once its overview (the text before the first `##`) is written. */
+		hasPage: hasContent({ blocks: projectSections.intro.blocks })
+	};
+	const page = {
+		status: project.status,
+		facts: Object.entries(project.facts).map(([label, value]) => ({ label, value })),
+		stack: Object.entries(project.stackGroups).map(([label, items]) => ({ label, items })),
+		screenshots: project.screenshots,
+		screenshotHints: project.screenshotHints,
+		diagram: project.diagram,
+		links: [
+			{ label: 'Repository', href: project.repo, caption: getLinkCaption(project.repo) },
+			...project.links.map((link) => ({ ...link, caption: link.caption ?? getLinkCaption(link.href) }))
+		],
+		sections: projectSections
+	};
+	return { meta, page };
+}
+
+/** Loads `content/about.md`. */
+function loadAbout(source: string) {
+	const { frontmatter, sections } = loadMarkdown(source);
+	const { portrait, skills, interests } = aboutFrontmatterSchema.parse(frontmatter);
+	const aboutSections = requireKnownSections(sections, ['intro', 'philosophy']);
+	const [philosophyStatement, ...extraParts] = aboutSections.philosophy.parts;
+	if (!philosophyStatement || extraParts.length > 0) {
+		throw new Error('"## Philosophy" needs exactly one "### " line: the big statement, with the paragraph under it.');
+	}
+	return { portrait, skills, interests, intro: aboutSections.intro, philosophy: philosophyStatement };
+}
+
+/** Loads `content/experience.md`. */
+function loadExperience(source: string) {
+	const { frontmatter, sections } = loadMarkdown(source);
+	const experience = experienceFrontmatterSchema.parse(frontmatter);
+	return { ...experience, intro: requireKnownSections(sections, ['intro']).intro };
+}
+
+/** Loads a file that has only an introduction and no frontmatter, such as `content/home.md`. */
 function loadIntroOnly(source: string) {
 	const { frontmatter, sections } = loadMarkdown(source);
 	z.strictObject({}).parse(frontmatter);
-	return { intro: checkSections(sections, ['intro']).intro };
+	return { intro: requireKnownSections(sections, ['intro']).intro };
 }
 
 export type ProjectMeta = ReturnType<typeof loadProject>['meta'];
@@ -180,11 +224,18 @@ export type AboutContent = ReturnType<typeof loadAbout>;
 export type IntroContent = ReturnType<typeof loadIntroOnly>;
 export type ExperienceContent = ReturnType<typeof loadExperience>;
 
-/** Which loader handles a file, by its path under `content/`. */
-export function loadContent(path: string, source: string): Record<string, unknown> {
-	if (/\/content\/projects\/[^/]+\.md$/.test(path)) return loadProject(source, path);
-	if (path.endsWith('/content/about.md')) return loadAbout(source);
-	if (path.endsWith('/content/home.md')) return loadIntroOnly(source);
-	if (path.endsWith('/content/experience.md')) return loadExperience(source);
+/**
+ * Loads a content file with the loader that matches its path.
+ *
+ * @param filePath Absolute path of a file under `content/`.
+ * @param source The file's Markdown.
+ * @returns The module's named exports.
+ * @throws Error when no loader handles the path, or the file is invalid.
+ */
+export function loadContent(filePath: string, source: string): Record<string, unknown> {
+	if (/\/content\/projects\/[^/]+\.md$/.test(filePath)) return loadProject(source, filePath);
+	if (filePath.endsWith('/content/about.md')) return loadAbout(source);
+	if (filePath.endsWith('/content/home.md')) return loadIntroOnly(source);
+	if (filePath.endsWith('/content/experience.md')) return loadExperience(source);
 	throw new Error('No content loader for this file. Add one in src/lib/content/collections.ts.');
 }
