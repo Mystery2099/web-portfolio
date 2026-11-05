@@ -11,12 +11,12 @@
 	let { blocks, lists = 'plain' }: { blocks: Block[]; lists?: 'plain' | 'features' } = $props();
 </script>
 
-{#each blocks as b, i (i)}
-	{#if 'todo' in b}
-		<Todo>{b.todo}</Todo>
-	{:else if 'list' in b && lists === 'features'}
+{#each blocks as block, blockIndex (blockIndex)}
+	{#if 'todo' in block}
+		<Todo>{block.todo}</Todo>
+	{:else if 'list' in block && lists === 'features'}
 		<ul class="m-0 flex list-none flex-col gap-2.5 p-0">
-			{#each b.list as item, j (j)}
+			{#each block.list as item, itemIndex (itemIndex)}
 				<li class="card flex items-center gap-3.5 rounded-[20px] px-5 py-3.5">
 					<span
 						aria-hidden="true"
@@ -26,11 +26,11 @@
 				</li>
 			{/each}
 		</ul>
-	{:else if 'list' in b}
+	{:else if 'list' in block}
 		<ul class="m-0 flex flex-col gap-1.5 pl-5">
-			{#each b.list as item, j (j)}<li>{@html item}</li>{/each}
+			{#each block.list as item, itemIndex (itemIndex)}<li>{@html item}</li>{/each}
 		</ul>
 	{:else}
-		{@html b.html}
+		{@html block.html}
 	{/if}
 {/each}

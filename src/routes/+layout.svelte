@@ -40,10 +40,10 @@
 
 	// Mirror preferences onto <html> (app.html sets them before first paint).
 	$effect(() => {
-		const d = document.documentElement.dataset;
-		d.theme = preferences.resolvedTheme;
-		d.nav = preferences.navStyle;
-		d.dock = preferences.resolvedDockPosition;
+		const dataset = document.documentElement.dataset;
+		dataset.theme = preferences.resolvedTheme;
+		dataset.nav = preferences.navStyle;
+		dataset.dock = preferences.resolvedDockPosition;
 	});
 
 	onNavigate((navigation) => {

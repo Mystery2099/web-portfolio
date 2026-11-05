@@ -3,32 +3,34 @@
 	import Search from '@lucide/svelte/icons/search';
 	import { createHotkey } from '@tanstack/svelte-hotkeys';
 	import { goto } from '$app/navigation';
-	import { buildCommands, groupMark, groupOrder, matches, type Command as Cmd } from '#lib/commands.ts';
+	import { buildCommands, groupMark, groupOrder, matches, type Command as PaletteCommand } from '#lib/commands.ts';
 	import { copyText } from '#lib/clipboard.ts';
 	import { site } from '#lib/data/site.ts';
 	import { uiState } from '#lib/state/ui.svelte.ts';
 
 	let query = $state('');
-	let selected = $state('');
+	let selectedCommandId = $state('');
 	/** Temporary hint overrides, e.g. "Copied!" after copying the email. */
-	let flashed = $state<Record<string, string>>({});
-	let input = $state<HTMLInputElement | null>(null);
+	let hintOverrides = $state<Record<string, string>>({});
+	let searchInput = $state<HTMLInputElement | null>(null);
 
 	const commands = $derived(buildCommands(() => copyText(site.email)));
-	const hits = $derived(commands.filter((c) => matches(c, query)));
+	const matchingCommands = $derived(commands.filter((command) => matches(command, query)));
 	const groups = $derived(
-		groupOrder.map((g) => ({ name: g, items: hits.filter((c) => c.group === g) })).filter((g) => g.items.length)
+		groupOrder
+			.map((group) => ({ name: group, items: matchingCommands.filter((command) => command.group === group) }))
+			.filter((group) => group.items.length)
 	);
 
-	// Like the design: highlight the first result whenever the results change.
+	// Highlight the first result whenever the results change.
 	$effect(() => {
-		selected = hits[0]?.id ?? '';
+		selectedCommandId = matchingCommands[0]?.id ?? '';
 	});
 
 	$effect(() => {
 		if (!uiState.isPaletteOpen) {
 			query = '';
-			flashed = {};
+			hintOverrides = {};
 		}
 	});
 
@@ -37,15 +39,15 @@
 
 	const isExternal = (href: string) => /^https?:/.test(href) || href.endsWith('.pdf');
 
-	async function select(cmd: Cmd) {
-		if (cmd.href) {
+	async function selectCommand(command: PaletteCommand) {
+		if (command.href) {
 			uiState.isPaletteOpen = false;
-			if (isExternal(cmd.href)) window.open(cmd.href, '_blank', 'noopener');
-			else await goto(cmd.href);
+			if (isExternal(command.href)) window.open(command.href, '_blank', 'noopener');
+			else await goto(command.href);
 			return;
 		}
-		const hint = await cmd.run?.();
-		if (typeof hint === 'string') flashed = { ...flashed, [cmd.id]: hint };
+		const hint = await command.run?.();
+		if (typeof hint === 'string') hintOverrides = { ...hintOverrides, [command.id]: hint };
 		else uiState.isPaletteOpen = false;
 	}
 </script>
@@ -56,17 +58,17 @@
 		<Dialog.Content
 			class="cmd cmd-anim"
 			aria-label="Command palette"
-			onOpenAutoFocus={(e) => {
-				e.preventDefault();
-				input?.focus();
+			onOpenAutoFocus={(event) => {
+				event.preventDefault();
+				searchInput?.focus();
 			}}
 		>
 			<Dialog.Title class="sr">Command palette</Dialog.Title>
-			<Command.Root shouldFilter={false} loop bind:value={selected} label="Search pages, projects and actions">
+			<Command.Root shouldFilter={false} loop bind:value={selectedCommandId} label="Search pages, projects and actions">
 				<div class="cmd-search">
 					<Search class="icon" style="width:22px;height:22px" aria-hidden="true" />
 					<Command.Input
-						bind:ref={input}
+						bind:ref={searchInput}
 						bind:value={query}
 						placeholder="Where to? Try “Kotlin” or “email”"
 						autocomplete="off"
@@ -80,20 +82,20 @@
 							<Command.Group value={group.name}>
 								<Command.GroupHeading class="cmd-gl">{group.name}</Command.GroupHeading>
 								<Command.GroupItems>
-									{#each group.items as cmd (cmd.id)}
-										{@const mark = groupMark[cmd.group]}
-										<Command.Item class="cmd-opt" value={cmd.id} onSelect={() => select(cmd)}>
+									{#each group.items as command (command.id)}
+										{@const mark = groupMark[command.group]}
+										<Command.Item class="cmd-opt" value={command.id} onSelect={() => selectCommand(command)}>
 											<span class="ico" aria-hidden="true">
 												<span style:background={mark.color} style:border-radius={mark.radius}></span>
 											</span>
-											{cmd.label}
-											<span class="cmd-hint">{flashed[cmd.id] ?? cmd.hint}</span>
+											{command.label}
+											<span class="cmd-hint">{hintOverrides[command.id] ?? command.hint}</span>
 										</Command.Item>
 									{/each}
 								</Command.GroupItems>
 							</Command.Group>
 						{/each}
-						{#if !hits.length}
+						{#if !matchingCommands.length}
 							<div class="cmd-empty" role="status">Nothing matches “{query}”. Try a page or project name.</div>
 						{/if}
 					</Command.Viewport>
