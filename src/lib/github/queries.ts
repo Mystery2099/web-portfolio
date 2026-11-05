@@ -1,16 +1,27 @@
-import { fetchLatestRelease, fetchRecentRepos, fetchRepo } from './api';
+import { fetchLatestRelease, fetchRecentRepositories, fetchRepository } from './api.ts';
 
-/** Query option factories, so components share cache keys and settings. */
+/** How many repositories the "Recently updated" card shows. */
+const RECENT_REPOSITORY_COUNT = 5;
+
+/**
+ * TanStack Query option factories for GitHub data. Components build their
+ * queries from these so they share cache keys and fetch settings.
+ */
 export const githubQueries = {
-	recent: () => ({
+	/** The most recently pushed repositories across all configured owners. */
+	recentRepositories: () => ({
 		queryKey: ['github', 'recent'] as const,
-		queryFn: () => fetchRecentRepos(5)
+		queryFn: () => fetchRecentRepositories(RECENT_REPOSITORY_COUNT)
 	}),
-	repo: (fullName: string) => ({
+
+	/** @param fullName `owner/name` of the repository. */
+	repository: (fullName: string) => ({
 		queryKey: ['github', 'repo', fullName] as const,
-		queryFn: () => fetchRepo(fullName)
+		queryFn: () => fetchRepository(fullName)
 	}),
-	release: (fullName: string) => ({
+
+	/** @param fullName `owner/name` of the repository. */
+	latestRelease: (fullName: string) => ({
 		queryKey: ['github', 'release', fullName] as const,
 		queryFn: () => fetchLatestRelease(fullName)
 	})

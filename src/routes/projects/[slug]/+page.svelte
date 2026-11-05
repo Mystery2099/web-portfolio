@@ -13,7 +13,7 @@
 	import SeoHead from '#lib/components/SeoHead.svelte';
 	import { tones } from '#lib/components/tones.ts';
 	import { hasContent, type Section } from '#lib/content/types.ts';
-	import { timeAgo } from '#lib/format.ts';
+	import { formatTimeAgo } from '#lib/format.ts';
 	import { githubQueries } from '#lib/github/queries.ts';
 	import type { PageProps } from './$types';
 
@@ -22,8 +22,8 @@
 	const d = $derived(data.detail);
 	const tone = $derived(tones[p.tone]);
 
-	const repoQuery = createQuery(() => githubQueries.repo(p.githubRepo));
-	const releaseQuery = createQuery(() => githubQueries.release(p.githubRepo));
+	const repoQuery = createQuery(() => githubQueries.repository(p.githubRepo));
+	const releaseQuery = createQuery(() => githubQueries.latestRelease(p.githubRepo));
 
 	// Sections with no content are dropped in production (and flagged in dev),
 	// so numbering and the table of contents always line up.
@@ -95,7 +95,7 @@
 						><Star class="size-3.5" aria-hidden="true" />{repoQuery.data.stars}
 						<span class="sr">stars</span></span
 					>
-					<span>Updated {timeAgo(repoQuery.data.pushedAt)}</span>
+					<span>Updated {formatTimeAgo(repoQuery.data.pushedAt)}</span>
 					{#if releaseQuery.data}
 						<a href={releaseQuery.data.url} target="_blank" rel="noopener">Latest release {releaseQuery.data.tag}</a>
 					{/if}
@@ -272,7 +272,7 @@
 			{#if releaseQuery.data}
 				<a class="card hov flex flex-col gap-0.5 px-[22px] py-[18px] text-on" href={releaseQuery.data.url} target="_blank" rel="noopener">
 					<span class="font-[650]">Releases</span><span class="mono text-xs text-on-var"
-						>{releaseQuery.data.name} · {timeAgo(releaseQuery.data.publishedAt)}</span
+						>{releaseQuery.data.name} · {formatTimeAgo(releaseQuery.data.publishedAt)}</span
 					>
 				</a>
 			{/if}
