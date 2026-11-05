@@ -49,5 +49,7 @@ export function formatTimeAgo(isoDate: string, now = Date.now()): string {
  * @param language GitHub's language name, or `null` when unknown.
  */
 export function getLanguageMarker(language: string | null): Marker {
-	return (language && LANGUAGE_MARKERS[language]) || DEFAULT_LANGUAGE_MARKER;
+	return language && Object.hasOwn(LANGUAGE_MARKERS, language)
+		? LANGUAGE_MARKERS[language]
+		: DEFAULT_LANGUAGE_MARKER;
 }
