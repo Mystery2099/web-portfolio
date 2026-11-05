@@ -9,8 +9,8 @@
 	import CommandPalette from '#lib/components/CommandPalette.svelte';
 	import Dock from '#lib/components/Dock.svelte';
 	import Rail from '#lib/components/Rail.svelte';
-	import { prefs } from '#lib/state/prefs.svelte.ts';
-	import { ui } from '#lib/state/ui.svelte.ts';
+	import { preferences } from '#lib/state/preferences.svelte.ts';
+	import { uiState } from '#lib/state/ui.svelte.ts';
 	import type { LayoutProps } from './$types';
 
 	let { children }: LayoutProps = $props();
@@ -41,13 +41,13 @@
 	// Mirror preferences onto <html> (app.html sets them before first paint).
 	$effect(() => {
 		const d = document.documentElement.dataset;
-		d.theme = prefs.resolvedTheme;
-		d.nav = prefs.nav;
-		d.dock = prefs.resolvedDock;
+		d.theme = preferences.resolvedTheme;
+		d.nav = preferences.navStyle;
+		d.dock = preferences.resolvedDockPosition;
 	});
 
 	onNavigate((navigation) => {
-		ui.dockMenuOpen = false;
+		uiState.isDockMenuOpen = false;
 		if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 		return new Promise((resolve) => {
 			document.startViewTransition(async () => {

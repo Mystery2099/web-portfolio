@@ -1,7 +1,7 @@
 import { navItems } from '#lib/data/nav.ts';
 import { projects, projectHref, techFilters } from '#lib/data/projects.ts';
 import { site } from '#lib/data/site.ts';
-import { prefs, type DockPos } from '#lib/state/prefs.svelte.ts';
+import { preferences, type DockPosition } from '#lib/state/preferences.svelte.ts';
 
 export type CommandGroup = 'Pages' | 'Projects' | 'Technologies' | 'Actions';
 
@@ -30,7 +30,7 @@ export const groupMark: Record<CommandGroup, { color: string; radius: string }> 
 	Actions: { color: 'var(--rose)', radius: '4px' }
 };
 
-const dockNames: Record<DockPos, string> = {
+const dockNames: Record<DockPosition, string> = {
 	auto: 'automatic',
 	top: 'the top',
 	bottom: 'the bottom',
@@ -39,7 +39,7 @@ const dockNames: Record<DockPos, string> = {
 };
 
 /**
- * Every palette entry. Reads `prefs`, so call it inside a reactive context to keep
+ * Every palette entry. Reads `preferences`, so call it inside a reactive context to keep
  * labels like "Switch to light theme" current.
  */
 export function buildCommands(copyEmail: () => Promise<boolean>): Command[] {
@@ -74,7 +74,7 @@ export function buildCommands(copyEmail: () => Promise<boolean>): Command[] {
 		};
 	});
 
-	const dark = prefs.resolvedTheme === 'dark';
+	const dark = preferences.isDarkTheme;
 	const actions: Command[] = [
 		{
 			id: 'act:theme',
@@ -82,9 +82,9 @@ export function buildCommands(copyEmail: () => Promise<boolean>): Command[] {
 			label: dark ? 'Switch to light theme' : 'Switch to dark theme',
 			hint: 'Theme',
 			keywords: 'dark light mode toggle appearance',
-			run: () => prefs.toggleTheme()
+			run: () => preferences.toggleTheme()
 		},
-		...(prefs.theme !== 'system'
+		...(preferences.theme !== 'system'
 			? [
 					{
 						id: 'act:theme-system',
@@ -93,7 +93,7 @@ export function buildCommands(copyEmail: () => Promise<boolean>): Command[] {
 						hint: 'Theme',
 						keywords: 'auto os device appearance dark light',
 						run: () => {
-							prefs.theme = 'system';
+							preferences.theme = 'system';
 						}
 					} satisfies Command
 				]
@@ -101,15 +101,15 @@ export function buildCommands(copyEmail: () => Promise<boolean>): Command[] {
 		{
 			id: 'act:nav',
 			group: 'Actions',
-			label: prefs.nav === 'rail' ? 'Switch to floating dock' : 'Switch to classic navigation',
+			label: preferences.navStyle === 'rail' ? 'Switch to floating dock' : 'Switch to classic navigation',
 			hint: 'Layout',
 			keywords: 'navbar sidebar rail dock navigation menu',
 			run: () => {
-				prefs.nav = prefs.nav === 'rail' ? 'dock' : 'rail';
+				preferences.navStyle = preferences.navStyle === 'rail' ? 'dock' : 'rail';
 			}
 		},
 		...(['auto', 'top', 'bottom', 'left', 'right'] as const)
-			.filter((p) => !(prefs.nav === 'dock' && p === prefs.dock))
+			.filter((p) => !(preferences.navStyle === 'dock' && p === preferences.dockPosition))
 			.map(
 				(p): Command => ({
 					id: `act:dock-${p}`,
@@ -118,7 +118,7 @@ export function buildCommands(copyEmail: () => Promise<boolean>): Command[] {
 					hint: 'Dock',
 					keywords: `dock position move side place ${p}`,
 					run: () => {
-						prefs.dock = p;
+						preferences.dockPosition = p;
 					}
 				})
 			),

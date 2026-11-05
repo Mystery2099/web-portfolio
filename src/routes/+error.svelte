@@ -4,7 +4,7 @@
 	import { page } from '$app/state';
 	import Blob from '#lib/components/Blob.svelte';
 	import SeoHead from '#lib/components/SeoHead.svelte';
-	import { ui } from '#lib/state/ui.svelte.ts';
+	import { uiState } from '#lib/state/ui.svelte.ts';
 
 	const notFound = $derived(page.status === 404);
 </script>
@@ -26,7 +26,7 @@
 	</p>
 	<div class="flex flex-wrap justify-center gap-3">
 		<a class="btn filled" href="/"><ArrowLeft class="icon" aria-hidden="true" />Back home</a>
-		<button type="button" class="btn tonal" onclick={() => ui.openPalette()}
+		<button type="button" class="btn tonal" onclick={() => uiState.openPalette()}
 			><Search class="icon" aria-hidden="true" />Search the site</button
 		>
 	</div>

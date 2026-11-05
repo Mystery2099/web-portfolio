@@ -22,7 +22,7 @@
 		type CategoryId,
 		type Tech
 	} from '#lib/data/projects.ts';
-	import { prefs } from '#lib/state/prefs.svelte.ts';
+	import { preferences } from '#lib/state/preferences.svelte.ts';
 
 	let q = $state('');
 	let cat = $state<CategoryId | 'all'>('all');
@@ -109,17 +109,17 @@
 			<div class="seg" role="group" aria-label="View">
 				<button
 					type="button"
-					class:on={prefs.projectView === 'cards'}
-					aria-pressed={prefs.projectView === 'cards'}
-					onclick={() => (prefs.projectView = 'cards')}
+					class:on={preferences.projectView === 'cards'}
+					aria-pressed={preferences.projectView === 'cards'}
+					onclick={() => (preferences.projectView = 'cards')}
 				>
 					<LayoutGrid class="size-[18px]" aria-hidden="true" />Cards
 				</button>
 				<button
 					type="button"
-					class:on={prefs.projectView === 'list'}
-					aria-pressed={prefs.projectView === 'list'}
-					onclick={() => (prefs.projectView = 'list')}
+					class:on={preferences.projectView === 'list'}
+					aria-pressed={preferences.projectView === 'list'}
+					onclick={() => (preferences.projectView = 'list')}
 				>
 					<List class="size-[18px]" aria-hidden="true" />List
 				</button>
@@ -163,7 +163,7 @@
 			</p>
 			<button type="button" class="btn filled" onclick={clearAll}>Clear filters</button>
 		</div>
-	{:else if prefs.projectView === 'list'}
+	{:else if preferences.projectView === 'list'}
 		{#if shown.length}<ProjectTable projects={shown} />{/if}
 	{:else}
 		<div class="flex flex-col gap-12">

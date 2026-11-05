@@ -3,8 +3,8 @@
 	import { page } from '$app/state';
 	import { navItems, isActive } from '#lib/data/nav.ts';
 	import { site } from '#lib/data/site.ts';
-	import { prefs } from '#lib/state/prefs.svelte.ts';
-	import { ui } from '#lib/state/ui.svelte.ts';
+	import { preferences } from '#lib/state/preferences.svelte.ts';
+	import { uiState } from '#lib/state/ui.svelte.ts';
 	import BrandIcon from './BrandIcon.svelte';
 	import NavSettings from './NavSettings.svelte';
 	import ThemeToggleIcon from './ThemeToggleIcon.svelte';
@@ -17,7 +17,7 @@
 	<button
 		class="dk"
 		type="button"
-		onclick={() => ui.openPalette()}
+		onclick={() => uiState.openPalette()}
 		aria-haspopup="dialog"
 		aria-label="Search the site ({shortcut})"
 	>
@@ -36,8 +36,8 @@
 	<button
 		class="dk dk-theme"
 		type="button"
-		onclick={() => prefs.toggleTheme()}
-		aria-label={prefs.resolvedTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+		onclick={() => preferences.toggleTheme()}
+		aria-label={preferences.isDarkTheme ? 'Switch to light theme' : 'Switch to dark theme'}
 	>
 		<ThemeToggleIcon />
 	</button>

@@ -6,7 +6,7 @@
 	import { buildCommands, groupMark, groupOrder, matches, type Command as Cmd } from '#lib/commands.ts';
 	import { copyText } from '#lib/clipboard.ts';
 	import { site } from '#lib/data/site.ts';
-	import { ui } from '#lib/state/ui.svelte.ts';
+	import { uiState } from '#lib/state/ui.svelte.ts';
 
 	let query = $state('');
 	let selected = $state('');
@@ -26,31 +26,31 @@
 	});
 
 	$effect(() => {
-		if (!ui.paletteOpen) {
+		if (!uiState.isPaletteOpen) {
 			query = '';
 			flashed = {};
 		}
 	});
 
-	createHotkey('Mod+K', () => (ui.paletteOpen ? (ui.paletteOpen = false) : ui.openPalette()));
-	createHotkey('/', () => ui.openPalette(), () => ({ enabled: !ui.paletteOpen }));
+	createHotkey('Mod+K', () => (uiState.isPaletteOpen ? (uiState.isPaletteOpen = false) : uiState.openPalette()));
+	createHotkey('/', () => uiState.openPalette(), () => ({ enabled: !uiState.isPaletteOpen }));
 
 	const isExternal = (href: string) => /^https?:/.test(href) || href.endsWith('.pdf');
 
 	async function select(cmd: Cmd) {
 		if (cmd.href) {
-			ui.paletteOpen = false;
+			uiState.isPaletteOpen = false;
 			if (isExternal(cmd.href)) window.open(cmd.href, '_blank', 'noopener');
 			else await goto(cmd.href);
 			return;
 		}
 		const hint = await cmd.run?.();
 		if (typeof hint === 'string') flashed = { ...flashed, [cmd.id]: hint };
-		else ui.paletteOpen = false;
+		else uiState.isPaletteOpen = false;
 	}
 </script>
 
-<Dialog.Root bind:open={ui.paletteOpen}>
+<Dialog.Root bind:open={uiState.isPaletteOpen}>
 	<Dialog.Portal>
 		<Dialog.Overlay class="cmd-scrim" />
 		<Dialog.Content
