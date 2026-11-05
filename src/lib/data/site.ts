@@ -18,7 +18,7 @@ export const site = {
 		{ name: 'The-Mystora-Project', kind: 'orgs' }
 	] as const,
 	/** Hosted résumé page. */
-	resumeUrl: 'https://red-dune-019d25210.1.azurestaticapps.net/',
+	resumeUrl: 'https://resume.mathewtech.us/',
 	/**
 	 * Downloadable PDF, e.g. '/resume.pdf' after adding `static/resume.pdf`.
 	 * Set to `undefined` to hide download buttons.
