@@ -13,12 +13,12 @@
 	import ProjectTile from '#lib/components/ProjectTile.svelte';
 	import RecentRepos from '#lib/components/RecentRepos.svelte';
 	import SeoHead from '#lib/components/SeoHead.svelte';
-	import { currentFocus, getProject, projectHref, projects, toolsIReachFor } from '#lib/data/projects.ts';
+	import { currentFocus, findProject, getProjectHref, projects, mostUsedTools } from '#lib/data/projects.ts';
 	import { site } from '#lib/data/site.ts';
 	import * as home from '#content/home.md';
 
-	const featured = projects.filter((p) => p.featured);
-	const focus = getProject(currentFocus.slug)!;
+	const featured = projects.filter((project) => project.isFeatured);
+	const focus = findProject(currentFocus.slug)!;
 </script>
 
 <SeoHead />
@@ -92,22 +92,22 @@
 			<a class="btn outlined" href="/projects">All projects<ArrowRight class="icon" aria-hidden="true" /></a>
 		</div>
 		<div class="grid grid-cols-[repeat(auto-fit,minmax(min(310px,100%),1fr))] gap-5">
-			{#each featured as p (p.slug)}
+			{#each featured as project (project.slug)}
 				<article class="card hov flex flex-col gap-3.5 p-7">
-					<ProjectTile project={p} mode="glyph" />
-					<h3 class="disp m-0 text-[28px]">{p.title}</h3>
-					<span class="-mt-2 text-sm font-semibold text-ter">{p.tagline}</span>
-					<p class="m-0 text-on-var">{p.shortBlurb ?? p.blurb}</p>
+					<ProjectTile project={project} mode="glyph" />
+					<h3 class="disp m-0 text-[28px]">{project.title}</h3>
+					<span class="-mt-2 text-sm font-semibold text-ter">{project.tagline}</span>
+					<p class="m-0 text-on-var">{project.shortBlurb ?? project.blurb}</p>
 					<div class="mt-auto flex flex-wrap gap-2">
-						{#each p.featuredStack ?? p.stack.slice(0, 3) as s (s)}<span class="chip">{s}</span>{/each}
+						{#each project.featuredStack ?? project.stack.slice(0, 3) as s (s)}<span class="chip">{s}</span>{/each}
 					</div>
 					<div class="flex flex-wrap items-center gap-2 pt-1">
-						<a class="btn tonal sm" href={projectHref(p)} aria-label="{p.title} details">Details</a>
-						<a class="ib" href={p.repo} aria-label="{p.title} on GitHub" target="_blank" rel="noopener"
+						<a class="btn tonal sm" href={getProjectHref(project)} aria-label="{project.title} details">Details</a>
+						<a class="ib" href={project.repo} aria-label="{project.title} on GitHub" target="_blank" rel="noopener"
 							><BrandIcon name="github" /></a
 						>
-						{#if p.download}
-							<a class="ib" href={p.download.href} aria-label={p.download.label} target="_blank" rel="noopener"
+						{#if project.download}
+							<a class="ib" href={project.download.href} aria-label={project.download.label} target="_blank" rel="noopener"
 								><Download class="icon" aria-hidden="true" /></a
 							>
 						{/if}
@@ -123,7 +123,7 @@
 			<RecentRepos />
 			<div class="flex min-w-0 flex-[1_1_300px] flex-col gap-5">
 				<a
-					href={projectHref(focus)}
+					href={getProjectHref(focus)}
 					class="card hov tinted relative flex flex-col gap-2 overflow-hidden bg-pri-c p-6 text-on-pri-c"
 				>
 					<Blob
@@ -137,7 +137,7 @@
 				<div class="card flex flex-1 flex-col gap-3.5 p-6">
 					<h3 class="m-0 text-lg font-[650]">Tools I use the most</h3>
 					<div class="flex flex-wrap gap-2">
-						{#each toolsIReachFor as t (t)}<span class="chip">{t}</span>{/each}
+						{#each mostUsedTools as t (t)}<span class="chip">{t}</span>{/each}
 					</div>
 				</div>
 			</div>

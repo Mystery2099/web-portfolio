@@ -1,6 +1,6 @@
 ---
 title: GearLever Turbo
-order: 7
+order: 8
 ini: GT
 shape: sunny
 tone: sand

@@ -1,6 +1,6 @@
 ---
 title: D&D 5e Spellbook
-order: 5
+order: 6
 ini: D&D
 shape: sunny
 tone: rose

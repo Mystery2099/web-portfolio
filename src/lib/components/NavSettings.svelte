@@ -9,8 +9,8 @@
 	import Sun from '@lucide/svelte/icons/sun';
 	import Moon from '@lucide/svelte/icons/moon';
 	import SunMoon from '@lucide/svelte/icons/sun-moon';
-	import { prefs, type DockPos, type ThemePref } from '#lib/state/prefs.svelte.ts';
-	import { ui } from '#lib/state/ui.svelte.ts';
+	import { preferences, type DockPosition, type ThemePreference } from '#lib/state/preferences.svelte.ts';
+	import { uiState } from '#lib/state/ui.svelte.ts';
 
 	/** The dock element, so the menu lines up with the dock's edge rather than the button. */
 	let { anchor }: { anchor: HTMLElement | null } = $props();
@@ -29,11 +29,11 @@
 	] as const;
 
 	const side = $derived(
-		({ top: 'bottom', bottom: 'top', left: 'right', right: 'left' } as const)[prefs.resolvedDock]
+		({ top: 'bottom', bottom: 'top', left: 'right', right: 'left' } as const)[preferences.resolvedDockPosition]
 	);
 </script>
 
-<Popover.Root bind:open={ui.dockMenuOpen}>
+<Popover.Root bind:open={uiState.isDockMenuOpen}>
 	<Popover.Trigger class="dk" aria-label="Navigation settings" title="Navigation settings">
 		<SlidersHorizontal class="icon" aria-hidden="true" />
 	</Popover.Trigger>
@@ -52,7 +52,7 @@
 				class="dm-row"
 				aria-labelledby="dm-pos"
 				orientation="horizontal"
-				bind:value={() => prefs.dock, (v) => (prefs.dock = v as DockPos)}
+				bind:value={() => preferences.dockPosition, (v) => (preferences.dockPosition = v as DockPosition)}
 			>
 				{#each positions as p (p.value)}
 					<RadioGroup.Item class="dm-opt" value={p.value}>
@@ -65,7 +65,7 @@
 				class="dm-row three"
 				aria-labelledby="dm-theme"
 				orientation="horizontal"
-				bind:value={() => prefs.theme, (v) => (prefs.theme = v as ThemePref)}
+				bind:value={() => preferences.theme, (v) => (preferences.theme = v as ThemePreference)}
 			>
 				{#each themes as t (t.value)}
 					<RadioGroup.Item class="dm-opt" value={t.value}>
@@ -77,8 +77,8 @@
 				type="button"
 				class="dm-wide"
 				onclick={() => {
-					ui.dockMenuOpen = false;
-					prefs.nav = 'rail';
+					uiState.isDockMenuOpen = false;
+					preferences.navStyle = 'rail';
 				}}
 			>
 				<PanelLeft class="icon" aria-hidden="true" />Use the classic side bar

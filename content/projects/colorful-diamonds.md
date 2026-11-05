@@ -1,6 +1,6 @@
 ---
 title: Colorful Diamonds
-order: 6
+order: 7
 ini: CD
 shape: flower
 tone: lav

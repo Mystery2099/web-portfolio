@@ -6,6 +6,7 @@
 	import BookOpen from '@lucide/svelte/icons/book-open';
 	import Gem from '@lucide/svelte/icons/gem';
 	import Download from '@lucide/svelte/icons/download';
+	import Ticket from '@lucide/svelte/icons/ticket';
 	import type { Project } from '#lib/data/projects.ts';
 
 	let { glyph, class: className = 'icon', style = '' }: { glyph: Project['glyph']; class?: string; style?: string } =
@@ -18,7 +19,8 @@
 		boxes: Boxes,
 		book: BookOpen,
 		gem: Gem,
-		download: Download
+		download: Download,
+		ticket: Ticket
 	};
 	const Icon = $derived(icons[glyph]);
 </script>

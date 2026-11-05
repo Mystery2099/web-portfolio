@@ -12,7 +12,8 @@
 			(function () {
 				try {
 					var d = document.documentElement;
-					var t = localStorage.getItem('pf-theme') || 'system';
+					var t = localStorage.getItem('pf-theme');
+					if (['light', 'dark', 'system'].indexOf(t) < 0) t = 'system';
 					if (t === 'system') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 					d.dataset.theme = t === 'dark' ? 'dark' : 'light';
 					d.dataset.nav = localStorage.getItem('pf-nav') === 'rail' ? 'rail' : 'dock';

@@ -19,6 +19,6 @@
 	{#if mode === 'glyph'}
 		<ProjectGlyph glyph={project.glyph} class="icon glyph" />
 	{:else}
-		<span class="ini">{project.ini}</span>
+		<span class="ini">{project.initials}</span>
 	{/if}
 </div>

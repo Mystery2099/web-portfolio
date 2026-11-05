@@ -1,6 +1,6 @@
 ---
 title: HappyCMS
-order: 4
+order: 5
 ini: HC
 shape: flower
 tone: lav

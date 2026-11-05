@@ -12,20 +12,20 @@
 	import { copyText } from '#lib/clipboard.ts';
 	import { site } from '#lib/data/site.ts';
 
-	let copied = $state<'idle' | 'ok' | 'fail'>('idle');
-	let timer: ReturnType<typeof setTimeout>;
+	let copyStatus = $state<'idle' | 'ok' | 'fail'>('idle');
+	let copyResetTimer: ReturnType<typeof setTimeout>;
 
 	async function copyEmail() {
-		copied = (await copyText(site.email)) ? 'ok' : 'fail';
-		clearTimeout(timer);
-		timer = setTimeout(() => (copied = 'idle'), 2500);
+		copyStatus = (await copyText(site.email)) ? 'ok' : 'fail';
+		clearTimeout(copyResetTimer);
+		copyResetTimer = setTimeout(() => (copyStatus = 'idle'), 2500);
 	}
 
 	const openTo = [
-		{ label: 'Software development roles', cls: 'rounded-full bg-pri-c text-on-pri-c' },
-		{ label: 'Internships & entry-level', cls: 'rounded-[22px_22px_8px_22px] bg-ter-c text-on-ter-c' },
-		{ label: 'Open-source collaboration', cls: 'rounded-[999px_999px_12px_12px] bg-sand-c text-on-sand-c' },
-		{ label: 'Interesting technical projects', cls: 'rounded-xl bg-rose-c text-on-rose-c' }
+		{ label: 'Software development roles', classes: 'rounded-full bg-pri-c text-on-pri-c' },
+		{ label: 'Internships & entry-level', classes: 'rounded-[22px_22px_8px_22px] bg-ter-c text-on-ter-c' },
+		{ label: 'Open-source collaboration', classes: 'rounded-[999px_999px_12px_12px] bg-sand-c text-on-sand-c' },
+		{ label: 'Interesting technical projects', classes: 'rounded-xl bg-rose-c text-on-rose-c' }
 	];
 </script>
 
@@ -46,7 +46,7 @@
 				Email is the best way to get in touch with me.
 			</p>
 			<ul aria-label="Open to" class="m-0 flex list-none flex-wrap gap-2.5 p-0">
-				{#each openTo as o (o.label)}<li class="px-[18px] py-2.5 font-semibold {o.cls}">{o.label}</li>{/each}
+				{#each openTo as opportunity (opportunity.label)}<li class="px-[18px] py-2.5 font-semibold {opportunity.classes}">{opportunity.label}</li>{/each}
 			</ul>
 		</div>
 		<div aria-hidden="true" class="flex flex-[1_1_240px] justify-center">
@@ -72,9 +72,9 @@
 				<div class="flex flex-wrap items-center gap-2.5">
 					<a class="btn filled" href="mailto:{site.email}"><Send class="icon" aria-hidden="true" />Send an email</a>
 					<button type="button" class="btn plain" onclick={copyEmail}>
-						{#if copied === 'ok'}<Check class="icon" aria-hidden="true" />{:else}<Copy class="icon" aria-hidden="true" />{/if}
+						{#if copyStatus === 'ok'}<Check class="icon" aria-hidden="true" />{:else}<Copy class="icon" aria-hidden="true" />{/if}
 						<span aria-live="polite"
-							>{copied === 'ok' ? 'Copied!' : copied === 'fail' ? 'Copy failed' : 'Copy address'}</span
+							>{copyStatus === 'ok' ? 'Copied!' : copyStatus === 'fail' ? 'Copy failed' : 'Copy address'}</span
 						>
 					</button>
 				</div>

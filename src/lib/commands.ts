@@ -1,7 +1,7 @@
 import { navItems } from '#lib/data/nav.ts';
-import { projects, projectHref, techFilters } from '#lib/data/projects.ts';
+import { projects, getProjectHref, techFilters } from '#lib/data/projects.ts';
 import { site } from '#lib/data/site.ts';
-import { prefs, type DockPos } from '#lib/state/prefs.svelte.ts';
+import { preferences, type DockPosition } from '#lib/state/preferences.svelte.ts';
 
 export type CommandGroup = 'Pages' | 'Projects' | 'Technologies' | 'Actions';
 
@@ -30,7 +30,7 @@ export const groupMark: Record<CommandGroup, { color: string; radius: string }> 
 	Actions: { color: 'var(--rose)', radius: '4px' }
 };
 
-const dockNames: Record<DockPos, string> = {
+const dockNames: Record<DockPosition, string> = {
 	auto: 'automatic',
 	top: 'the top',
 	bottom: 'the bottom',
@@ -39,52 +39,52 @@ const dockNames: Record<DockPos, string> = {
 };
 
 /**
- * Every palette entry. Reads `prefs`, so call it inside a reactive context to keep
+ * Every palette entry. Reads `preferences`, so call it inside a reactive context to keep
  * labels like "Switch to light theme" current.
  */
 export function buildCommands(copyEmail: () => Promise<boolean>): Command[] {
-	const pages: Command[] = navItems.map((n) => ({
-		id: `page:${n.href}`,
+	const pages: Command[] = navItems.map((item) => ({
+		id: `page:${item.href}`,
 		group: 'Pages',
-		label: n.label,
-		hint: n.href,
-		keywords: n.keywords,
-		href: n.href
+		label: item.label,
+		hint: item.href,
+		keywords: item.keywords,
+		href: item.href
 	}));
 
-	const projectCmds: Command[] = projects.map((p) => ({
-		id: `project:${p.slug}`,
+	const projectCommands: Command[] = projects.map((project) => ({
+		id: `project:${project.slug}`,
 		group: 'Projects',
-		label: p.title,
-		hint: p.kind,
-		keywords: [...p.stack, ...p.techs, p.catLabel, p.blurb].join(' '),
-		href: projectHref(p)
+		label: project.title,
+		hint: project.kind,
+		keywords: [...project.stack, ...project.techs, project.categoryLabel, project.blurb].join(' '),
+		href: getProjectHref(project)
 	}));
 
-	const techCmds: Command[] = techFilters.map((t) => {
-		const count = projects.filter((p) => p.techs.includes(t)).length;
+	const technologyCommands: Command[] = techFilters.map((technology) => {
+		const count = projects.filter((project) => project.techs.includes(technology)).length;
 		return {
-			id: `tech:${t}`,
+			id: `tech:${technology}`,
 			group: 'Technologies',
-			label: `Projects built with ${t}`,
+			label: `Projects built with ${technology}`,
 			hint: `${count} project${count === 1 ? '' : 's'}`,
-			keywords: t,
-			href: `/projects?tech=${encodeURIComponent(t)}`,
+			keywords: technology,
+			href: `/projects?tech=${encodeURIComponent(technology)}`,
 			searchOnly: true
 		};
 	});
 
-	const dark = prefs.resolvedTheme === 'dark';
+	const isDarkTheme = preferences.isDarkTheme;
 	const actions: Command[] = [
 		{
 			id: 'act:theme',
 			group: 'Actions',
-			label: dark ? 'Switch to light theme' : 'Switch to dark theme',
+			label: isDarkTheme ? 'Switch to light theme' : 'Switch to dark theme',
 			hint: 'Theme',
 			keywords: 'dark light mode toggle appearance',
-			run: () => prefs.toggleTheme()
+			run: () => preferences.toggleTheme()
 		},
-		...(prefs.theme !== 'system'
+		...(preferences.theme !== 'system'
 			? [
 					{
 						id: 'act:theme-system',
@@ -93,7 +93,7 @@ export function buildCommands(copyEmail: () => Promise<boolean>): Command[] {
 						hint: 'Theme',
 						keywords: 'auto os device appearance dark light',
 						run: () => {
-							prefs.theme = 'system';
+							preferences.theme = 'system';
 						}
 					} satisfies Command
 				]
@@ -101,24 +101,24 @@ export function buildCommands(copyEmail: () => Promise<boolean>): Command[] {
 		{
 			id: 'act:nav',
 			group: 'Actions',
-			label: prefs.nav === 'rail' ? 'Switch to floating dock' : 'Switch to classic navigation',
+			label: preferences.navStyle === 'rail' ? 'Switch to floating dock' : 'Switch to classic navigation',
 			hint: 'Layout',
 			keywords: 'navbar sidebar rail dock navigation menu',
 			run: () => {
-				prefs.nav = prefs.nav === 'rail' ? 'dock' : 'rail';
+				preferences.navStyle = preferences.navStyle === 'rail' ? 'dock' : 'rail';
 			}
 		},
 		...(['auto', 'top', 'bottom', 'left', 'right'] as const)
-			.filter((p) => !(prefs.nav === 'dock' && p === prefs.dock))
+			.filter((position) => !(preferences.navStyle === 'dock' && position === preferences.dockPosition))
 			.map(
-				(p): Command => ({
-					id: `act:dock-${p}`,
+				(position): Command => ({
+					id: `act:dock-${position}`,
 					group: 'Actions',
-					label: p === 'auto' ? 'Dock position: automatic' : `Move dock to ${dockNames[p]}`,
+					label: position === 'auto' ? 'Dock position: automatic' : `Move dock to ${dockNames[position]}`,
 					hint: 'Dock',
-					keywords: `dock position move side place ${p}`,
+					keywords: `dock position move side place ${position}`,
 					run: () => {
-						prefs.dock = p;
+						preferences.dockPosition = position;
 					}
 				})
 			),
@@ -160,12 +160,12 @@ export function buildCommands(copyEmail: () => Promise<boolean>): Command[] {
 		}
 	];
 
-	return [...pages, ...projectCmds, ...techCmds, ...actions];
+	return [...pages, ...projectCommands, ...technologyCommands, ...actions];
 }
 
 /** Case-insensitive substring match over label, hint, keywords and group. */
-export function matches(cmd: Command, query: string) {
-	const q = query.trim().toLowerCase();
-	if (!q) return !cmd.searchOnly;
-	return `${cmd.label} ${cmd.hint} ${cmd.keywords} ${cmd.group}`.toLowerCase().includes(q);
+export function matches(command: Command, query: string) {
+	const normalizedQuery = query.trim().toLowerCase();
+	if (!normalizedQuery) return !command.searchOnly;
+	return `${command.label} ${command.hint} ${command.keywords} ${command.group}`.toLowerCase().includes(normalizedQuery);
 }

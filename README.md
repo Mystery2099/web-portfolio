@@ -57,7 +57,7 @@ Mistakes fail the build with the file name and the problem, e.g. `content/projec
 ### Still to fill in
 
 - `portrait` in `content/about.md`, and screenshots for AlfredGO, HappyCMS, D&D 5e Spellbook, VoxLib and GearLever Turbo.
-- Wooden Accents and Colorful Diamonds use images from their official Modrinth galleries (see `static/projects/SOURCES.md`). Published mods already have Modrinth download links.
+- Wooden Accents and Colorful Diamonds use images from their official Modrinth galleries (see `static/projects/SOURCES.md`). The Capstone Ticket System uses screenshots from its own repository's screen gallery. Published mods already have Modrinth download links.
 
 The downloadable résumé is `static/Mathew_Kennedy-Brewer_Resume.pdf` (`site.resumePdf`). Replace the file to update it.
 

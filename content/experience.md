@@ -38,6 +38,10 @@ certifications:
 
 # "project" links the card to that project's page (the file name in content/projects/).
 academic:
+  - title: Capstone Ticket System
+    course: Applied Database Management
+    body: A support ticket system built on SvelteKit and PostgreSQL, with role-based permissions, internal notes, search, and MFA.
+    project: capstone-ticket-system
   - title: AlfredGO
     course: Web Programming 2
     body: My final project, a campus dashboard with role-based tools, announcements, and admin controls.

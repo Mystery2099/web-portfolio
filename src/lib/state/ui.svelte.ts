@@ -1,12 +1,26 @@
-/** Transient, app-wide UI state (not persisted). */
+/** Transient, app-wide UI state. Nothing here is persisted. */
 class UiState {
-	paletteOpen = $state(false);
-	dockMenuOpen = $state(false);
+	isPaletteOpen = $state(false);
+	isDockMenuOpen = $state(false);
 
+	/** Opens the command palette, closing the dock menu so they never overlap. */
 	openPalette(): void {
-		this.dockMenuOpen = false;
-		this.paletteOpen = true;
+		this.isDockMenuOpen = false;
+		this.isPaletteOpen = true;
+	}
+
+	closePalette(): void {
+		this.isPaletteOpen = false;
+	}
+
+	togglePalette(): void {
+		if (this.isPaletteOpen) {
+			this.closePalette();
+		} else {
+			this.openPalette();
+		}
 	}
 }
 
-export const ui = new UiState();
+/** The app-wide UI state instance. */
+export const uiState = new UiState();
