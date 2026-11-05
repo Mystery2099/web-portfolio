@@ -1,6 +1,6 @@
 ---
 title: VoxLib
-order: 2
+order: 3
 ini: Vx
 shape: clover
 tone: teal

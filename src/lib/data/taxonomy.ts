@@ -11,7 +11,7 @@ export const tileShapes = ['cookie', 'flower', 'sunny', 'clover', 'arch'] as con
 )[];
 export type TileShape = (typeof tileShapes)[number];
 
-export const glyphs = ['armchair', 'dashboard', 'file', 'boxes', 'book', 'gem', 'download'] as const;
+export const glyphs = ['armchair', 'dashboard', 'file', 'boxes', 'book', 'gem', 'download', 'ticket'] as const;
 export type Glyph = (typeof glyphs)[number];
 
 export const categories = [
